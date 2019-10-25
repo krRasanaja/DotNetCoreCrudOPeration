@@ -1,0 +1,184 @@
+﻿@model IEnumerable<WebApplication6.Models.Employees>
+@{
+    ViewData["Title"] = "Index";
+}
+
+@Html.Hidden("HDTempData", "")
+<h4>Employee Register</h4>
+<hr />
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.FullName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EmpCode)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Position)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OfficeLocation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DepartmentName)
+            </th>
+            <th>
+                <a asp-action="AddOrEdit" class="btn btn-outline-success" onclick=""><i class="far fa-plus-square"></i> Employee</a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr class='row_@item.EmployeeId'>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EmpCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Position)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OfficeLocation)
+                </td>
+                <td>
+                    @((ViewBag.ListOfDepartments as List<SelectList>).Where(x => Convert.ToInt32(x.DataValueField) == item.DepartmentId).FirstOrDefault().DataTextField)
+                </td>
+                <td>
+                    <a onclick="AddOrEdit(@item.EmployeeId)"><i class="fa fa-marker fa-lg"></i></a>
+                    <a class="text-danger ml-1" onclick="RemoveRecord(@item.EmployeeId);"><i class="fa fa-trash-alt fa-lg"></i></a>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="RemoveConfirmation">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Delete Student Record</h4>
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+            </div>
+            <div class="modal-body">
+                <h6>Are You Sure? You Want To Delete This Record.</h6>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary" data-dismiss="modal" id="r">Cancle</a>
+                <a class="btn btn-danger" style="color:aliceblue" onclick="ConfirmDelete()">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="MyModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="ModalTitle"></h4>
+                <a href="#" class="close" data-dismiss="modal" onclick="ClearInputs();">&times;</a>
+            </div>
+            <div class="modal-body">
+                <form asp-action="AddOrEdit" id="form">
+                    <fieldset id="SubmitForm">
+                        @Html.Hidden("EmployeeId", null, new { @id = "EmployeeId" })
+                        <div class="form-group">
+                            @Html.Label("FullName", null, new { @id = "lblFullName", @class = "control-label" })
+                            @Html.TextBox("FullName", null, new { @id = "txtFullName", @class = "form-control", @placeholder = "FullName*" })
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                @Html.Label("EmpCode", null, new { @id = "lblEmpCode", @class = "control-label" })
+                                @Html.TextBox("EmpCode", null, new { @id = "txtEmpCode", @class = "form-control", @placeholder = "FullName*" })
+                            </div>
+                            <div class="form-group col-md-6">
+                                @Html.Label("Position", null, new { @id = "lblPosition", @class = "control-label" })
+                                @Html.TextBox("Position", null, new { @id = "txtPosition", @class = "form-control", @placeholder = "Position*" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            @Html.Label("OfficeLocation", null, new { @id = "lblOfficeLocation", @class = "control-label" })
+                            @Html.TextBox("OfficeLocation", null, new { @id = "txtOfficeLocation", @class = "form-control", @placeholder = "Office Location*" })
+                        </div>
+                        <div class="form-group">
+                            @Html.Label("Department", null, new { @id = "lblDepartment", @class = "control-label" })
+                            @Html.DropDownList("DepartmentId", ViewBag.ListOfDepartments as SelectList, "--Select Dept--", new { @id = "DepartmentId", @class = "form-control" })
+                        </div>
+                        <div class="form-row col-md-12">
+                            <div class="form-group col-md-6">
+                                <input type="submit" value="Submit" class="btn btn-primary btn-block" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <input type="button" value="Cancel" data-dismiss="modal" onclick="ClearInputs();" class="btn btn-danger btn-block" />
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var baseUri = "";
+
+    function RemoveRecord(EmployeeId) {
+        $('#HDTempData').val(EmployeeId);
+        $("#RemoveConfirmation").modal("show");
+    }
+
+    var ConfirmDelete = function () {
+        $("#RemoveConfirmation").modal("hide");
+        var EmployeeId = $("#HDTempData").val();
+
+        $.ajax({
+            type: "GET",
+            url: baseUri + "/Employees/Delete?id=" + EmployeeId,
+            success: function (result) {
+                $("#DeleteConfirmation").modal("hide");
+                location.reload();
+            }
+        })
+    }
+
+    function AddOrEdit(EmployeeId) {
+
+        $("#MyModal").modal("show");
+
+        var url = "/Employees/AddOrEdit?id=" + EmployeeId;
+        $("#ModalTitle").html("Update Employee Record");
+        $("#MyModal").modal();
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (data) {
+                var obj = JSON.parse(data);
+                $("#txtFullName").val(obj.FullName);
+                $("#EmployeeId").val(obj.EmployeeId);
+                $("#txtEmpCode").val(obj.EmpCode);
+                $("#txtPosition").val(obj.Position);
+                $("#txtOfficeLocation").val(obj.OfficeLocation);
+                $("#DepartmentId").find("option[value='" + obj.DepartmentId + "']").attr("selected", true);
+            }
+        })
+    }
+
+    function ClearInputs() {
+        $("#txtFullName").val("");
+        $("#EmployeeId").val("");
+        $("#txtEmpCode").val("");
+        $("#txtPosition").val("");
+        $("#txtOfficeLocation").val("");
+        $("#DepartmentId").find("option[value='" + 0 + "']").attr("selected", true);
+    }
+    
+</script>
