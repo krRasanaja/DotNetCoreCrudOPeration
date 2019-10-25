@@ -25,7 +25,7 @@
                 @Html.DisplayNameFor(model => model.DepartmentName)
             </th>
             <th>
-                <a asp-action="AddOrEdit" class="btn btn-outline-success" onclick=""><i class="far fa-plus-square"></i> Employee</a>
+                <a class="btn btn-outline-success" onclick="AddOrEdit(0)"><i class="far fa-plus-square"></i> Employee</a>
             </th>
         </tr>
     </thead>
@@ -46,7 +46,8 @@
                     @Html.DisplayFor(modelItem => item.OfficeLocation)
                 </td>
                 <td>
-                    @((ViewBag.ListOfDepartments as List<SelectList>).Where(x => Convert.ToInt32(x.DataValueField) == item.DepartmentId).FirstOrDefault().DataTextField)
+                    @if (item.DepartmentId != 0) { @((ViewBag.depLst as ICollection<Departments>).Where(x => x.DepartmentID == item.DepartmentId).FirstOrDefault().DepartmentName) }
+                    
                 </td>
                 <td>
                     <a onclick="AddOrEdit(@item.EmployeeId)"><i class="fa fa-marker fa-lg"></i></a>
@@ -154,22 +155,24 @@
 
         $("#MyModal").modal("show");
 
-        var url = "/Employees/AddOrEdit?id=" + EmployeeId;
-        $("#ModalTitle").html("Update Employee Record");
-        $("#MyModal").modal();
-        $.ajax({
-            type: "GET",
-            url: url,
-            success: function (data) {
-                var obj = JSON.parse(data);
-                $("#txtFullName").val(obj.FullName);
-                $("#EmployeeId").val(obj.EmployeeId);
-                $("#txtEmpCode").val(obj.EmpCode);
-                $("#txtPosition").val(obj.Position);
-                $("#txtOfficeLocation").val(obj.OfficeLocation);
-                $("#DepartmentId").find("option[value='" + obj.DepartmentId + "']").attr("selected", true);
-            }
-        })
+        if (EmployeeId != 0) {
+            var url = "/Employees/AddOrEdit?id=" + EmployeeId;
+            $("#ModalTitle").html("Update Employee Record");
+            $("#MyModal").modal();
+            $.ajax({
+                type: "GET",
+                url: url,
+                success: function (data) {
+                    var obj = JSON.parse(data);
+                    $("#txtFullName").val(obj.FullName);
+                    $("#EmployeeId").val(obj.EmployeeId);
+                    $("#txtEmpCode").val(obj.EmpCode);
+                    $("#txtPosition").val(obj.Position);
+                    $("#txtOfficeLocation").val(obj.OfficeLocation);
+                    $("#DepartmentId").find("option[value='" + obj.DepartmentId + "']").attr("selected", true);
+                }
+            })
+        }
     }
 
     function ClearInputs() {

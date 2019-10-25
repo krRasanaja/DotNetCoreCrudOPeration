@@ -24,6 +24,7 @@ namespace WebApplication6.Controllers
 
             List<Departments> depList = _context.departments.ToList();
             ViewBag.ListOfDepartments = new SelectList(depList, "DepartmentID", "DepartmentName");
+            ViewBag.depLst = depList;
             return View(_context.Employees.ToList());
         }
 
